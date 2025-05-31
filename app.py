@@ -30,7 +30,7 @@ load_dotenv()
 
 AWS_REGION = os.getenv("AWS_REGION")
 AWS_SECRET_NAME = os.getenv("AWS_SECRET_NAME")
-AWS_API_SECRET_KEY_NAME = os.getenv("AWS_API_SECRET_KEY_NAME")
+WHALE_SENTINEL_SERVICE_SECRET_KEY_NAME = os.getenv("WHALE_SENTINEL_SERVICE_SECRET_KEY_NAME")
 
 app = FastAPI()
 
@@ -54,9 +54,9 @@ def get_secret():
 
     secret = get_secret_value_response['SecretString']
     secret_data = json.loads(secret)
-    api_key = secret_data.get(AWS_API_SECRET_KEY_NAME)
+    secret_value = secret_data.get(WHALE_SENTINEL_SERVICE_SECRET_KEY_NAME)
 
-    return api_key
+    return secret_value
 
 def load_model_detector():
     local_model_path = hf_hub_download(
