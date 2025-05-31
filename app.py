@@ -110,9 +110,7 @@ async def process_loggcollection(payload: Payload, eventInfo: str, score: float)
         "request_processed_at": datetime.now().astimezone().isoformat(),
         "timestamp": datetime.now().astimezone().isoformat()
     }
-    logEntryJSON = json.dumps(logEntry, ensure_ascii=False).replace('"', '\\"')
-    logger.info(logEntryJSON)
-    
+    json.dumps(logEntry, ensure_ascii=False).replace('"', '\\"')    
     
 @app.get("/api/v1/ws/services/dga-detection/ping")
 def ping_info(authorization: str = Header(None)):
