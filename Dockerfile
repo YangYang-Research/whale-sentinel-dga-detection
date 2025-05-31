@@ -11,7 +11,7 @@ WORKDIR /app
 COPY . .
 
 # Set working directory for the service
-WORKDIR /app/ws-dga-detection
+WORKDIR /app/whale-sentinel-dga-detection
 
 # Install Python dependencies
 RUN pip install --no-cache-dir -r requirements.txt
@@ -28,7 +28,7 @@ RUN openssl req -x509 -nodes -days 365 -newkey rsa:2048 \
     -subj "/CN=localhost"
 
 # Copy Nginx configuration
-COPY ws-dga-detection/nginx.conf /etc/nginx/nginx.conf
+COPY whale-sentinel-dga-detection/nginx.conf /etc/nginx/nginx.conf
 
 # Expose port 443 for HTTPS
 EXPOSE 443
