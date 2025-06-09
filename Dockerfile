@@ -8,7 +8,7 @@ RUN apt-get update && apt-get install -y nginx openssl && \
 WORKDIR /app
 
 # Copy application files
-COPY . .
+COPY . /app/whale-sentinel-dga-detection
 
 # Set working directory for the service
 WORKDIR /app/whale-sentinel-dga-detection
@@ -28,7 +28,7 @@ RUN openssl req -x509 -nodes -days 365 -newkey rsa:2048 \
     -subj "/CN=localhost"
 
 # Copy Nginx configuration
-COPY whale-sentinel-dga-detection/nginx.conf /etc/nginx/nginx.conf
+COPY nginx.conf /etc/nginx/nginx.conf
 
 # Expose port 443 for HTTPS
 EXPOSE 443
