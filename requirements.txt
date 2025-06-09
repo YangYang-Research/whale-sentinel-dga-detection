@@ -3,7 +3,7 @@ botocore==1.37.0
 fastapi==0.95.2
 huggingface_hub==0.25.2
 keras==2.13.1
-pydantic==1.10.9
+pydantic==1.10.13
 python-dotenv==1.0.1
 tensorflow==2.13.0
 uvicorn==0.34.0
