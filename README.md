@@ -1,4 +1,4 @@
-# Whale Sentinel DGA Detection
+# Whale Sentinel Domain Generation Algorithm (DGA) Detection
 
 [![CodeQL Advanced](https://github.com/YangYang-Research/whale-sentinel-dga-detection/actions/workflows/codeql.yml/badge.svg?branch=main)](https://github.com/YangYang-Research/whale-sentinel-dga-detection/actions/workflows/codeql.yml)
 [![Dependency review](https://github.com/YangYang-Research/whale-sentinel-dga-detection/actions/workflows/dependency-review.yml/badge.svg)](https://github.com/YangYang-Research/whale-sentinel-dga-detection/actions/workflows/dependency-review.yml)
