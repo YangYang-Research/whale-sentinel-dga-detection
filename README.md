@@ -16,3 +16,7 @@ Key Functions:
 ✅ Real-Time Monitoring & Response – Enables instant identification of suspicious domains, preventing unauthorized communication with command-and-control (C2) servers.
 
 ✅ Seamless Integration with Security Frameworks – Works alongside other security modules to enhance network protection, DNS filtering, and automated threat mitigation.
+
+## Contributing
+
+## License
