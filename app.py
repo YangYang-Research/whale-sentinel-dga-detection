@@ -14,7 +14,7 @@ import boto3
 from botocore.exceptions import BotoCoreError, ClientError
 from concurrent.futures import ThreadPoolExecutor
 import asyncio
-from datetime import datetime
+from datetime import datetime, timezone
 import json
 import logging
 from wslogger import logger
@@ -82,6 +82,16 @@ def get_decoded_auth(authorization: str) -> str:
     except Exception:
         raise HTTPException(status_code=401, detail={"status": "error", "message": "Unauthorized", "error_code": 401})
 
+def to_unix_time(timestamp):
+    if not isinstance(timestamp, str):
+        return 0
+    try:
+        parsed_time = datetime.strptime(timestamp, '%Y-%m-%dT%H:%M:%SZ')
+        parsed_time = parsed_time.replace(tzinfo=timezone.utc)
+        return int(parsed_time.timestamp())
+    except ValueError:
+        return 0
+    
 def extract_eventInfo(event_info: str):
     try:
         agent_id, service_name, event_id = event_info.split("|")
@@ -112,9 +122,9 @@ async def process_loggcollection(payload: Payload, eventInfo: str, action_result
         "raw_request": payload.payload,
         "prediction": score,
         "message": "Received request from service",
-        "request_created_at": payload.request_created_at,
-        "request_processed_at": datetime.now().astimezone().isoformat(),
-        "timestamp": datetime.now().astimezone().isoformat()
+        "request_created_at": to_unix_time(payload.request_created_at),
+        "request_processed_at": to_unix_time(datetime.now(timezone.utc).strftime('%Y-%m-%dT%H:%M:%SZ')),
+        "timestamp": datetime.now(timezone.utc).strftime('%Y-%m-%dT%H:%M:%SZ')
     }
     logEntryJSON = json.dumps(logEntry, ensure_ascii=False).replace('"', '\\"')    
     logger.info(logEntryJSON)
@@ -188,7 +198,7 @@ async def process_detection(payload: Payload, authorization: str):
         },
         "event_info": event_info,
         "request_created_at": payload.request_created_at,
-        "request_processed_at": datetime.now().astimezone().isoformat()
+        "request_processed_at":  datetime.now(timezone.utc).strftime('%Y-%m-%dT%H:%M:%SZ')
     })
 
 if __name__ == "__main__":

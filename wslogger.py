@@ -18,7 +18,7 @@ class CustomFormatter(logging.Formatter):
     
     def formatTime(self, record, datefmt=None):
         dt = datetime.fromtimestamp(record.created, tz=timezone.utc)
-        return dt.isoformat()
+        return dt.strftime('%Y-%m-%dT%H:%M:%SZ')
     
 def create_log_directory():
     import os
