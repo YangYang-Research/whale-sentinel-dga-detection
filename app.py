@@ -21,11 +21,17 @@ from wslogger import logger
 
 log = logging.getLogger(__name__)
 
-class Payload(BaseModel):
-    payload: str
-    event_info: str
+class PayloadData(BaseModel):
     agent_id: str
     agent_name: str
+    sentence: str
+
+class PayloadWrapper(BaseModel):
+    data: PayloadData
+
+class RequestPayload(BaseModel):
+    event_info: str
+    payload: PayloadWrapper
     request_created_at: str
 
 load_dotenv()
@@ -103,13 +109,13 @@ def extract_eventInfo(event_info: str):
     except ValueError:
         log.error(f"Invalid event_info format: {event_info}. Expected format: agent_id|service_name|event_id")
 
-async def process_loggcollection(payload: Payload, eventInfo: str, action_result: str, action_status: str,  score: float):
-    info = extract_eventInfo(payload.event_info)
+async def process_loggcollection(request_payload: RequestPayload, eventInfo: str, action_result: str, action_status: str,  score: float, message: str):
+    info = extract_eventInfo(request_payload.event_info)
     # Construct log entry
     logEntry = {
         "name": "ws-dga-detection",
-        "agent_id": payload.agent_id,
-        "agent_name": payload.agent_name,
+        "agent_id": request_payload.payload.data.agent_id,
+        "agent_name": request_payload.payload.data.agent_name,
         "source": str(info["service_name"]).lower(),
         "destination": "ws-dga-detection",
         "event_info": eventInfo,
@@ -119,10 +125,10 @@ async def process_loggcollection(payload: Payload, eventInfo: str, action_result
         "action": "ANALYSIS_REQUEST",
         "action_result": action_result,
         "action_status": action_status,
-        "raw_request": payload.payload,
+        "raw_request": str(request_payload),
         "prediction": score,
-        "message": "Received request from service",
-        "request_created_at": to_unix_time(payload.request_created_at),
+        "message": message,
+        "request_created_at": to_unix_time(request_payload.request_created_at),
         "request_processed_at": to_unix_time(datetime.now(timezone.utc).strftime('%Y-%m-%dT%H:%M:%SZ')),
         "timestamp": datetime.now(timezone.utc).strftime('%Y-%m-%dT%H:%M:%SZ')
     }
@@ -147,25 +153,25 @@ def ping_info(authorization: str = Header(None)):
     }
 
 @app.post("/api/v1/ws/services/dga-detection")
-async def detection(payload: Payload, authorization: str = Header(None)):
+async def detection(request_payload: RequestPayload, authorization: str = Header(None)):
     try:
         # Enforce a 30-second timeout for the entire function
-        result = await asyncio.wait_for(process_detection(payload, authorization), timeout=30.0)
+        result = await asyncio.wait_for(process_detection(request_payload, authorization), timeout=30.0)
         return result
     except asyncio.TimeoutError:
         raise HTTPException(status_code=504, detail={"status": "Error", "message": "Request timed out", "error_code": 504})
     
-async def process_detection(payload: Payload, authorization: str):
+async def process_detection(request_payload: RequestPayload, authorization: str):
     decoded_auth = get_decoded_auth(authorization)
     apiKey = get_secret()
     expectedAuthValue = f"ws:{apiKey}"
     if decoded_auth != expectedAuthValue:
         raise HTTPException(status_code=401, detail={"status": "Error", "message": "Unauthorized", "error_code": 401})
     
-    payload_data = payload.payload
+    sentence = request_payload.payload.data.sentence
 
     # Convert domain to lowercase and encode it
-    payload_encoded = [tokens[char] for char in payload_data.lower() if char in tokens]
+    payload_encoded = [tokens[char] for char in sentence.lower() if char in tokens]
 
     # Pad and truncate the sequence
     domain_encoded = pad_sequences([payload_encoded], maxlen=45, padding='post', truncating='post')
@@ -181,23 +187,23 @@ async def process_detection(payload: Payload, authorization: str):
         accuracy = executor.submit(calculate_accuracy, prediction).result()
 
     # Replace "WS_GATEWAY_SERVICE" with "WS_WEB_ATTACK_DETECTION" in event_id
-    event_info = payload.event_info.replace("WS_GATEWAY_SERVICE", "WS_DGA_DETECTION")
+    event_info = request_payload.event_info.replace("WS_GATEWAY_SERVICE", "WS_DGA_DETECTION")
 
     # Trigger log collection (do not await to keep async non-blocking)
-    asyncio.create_task(process_loggcollection(payload, eventInfo=event_info, action_result="NO_MAKE_DECISION", action_status="SUCCESSED", score=accuracy))
+    asyncio.create_task(process_loggcollection(request_payload, eventInfo=event_info, action_result="NO_MAKE_DECISION", action_status="SUCCESSED", score=accuracy, message="Analysis request"))
 
     return JSONResponse(content={
         "status": "success",
         "message": "Request processed successfully",
         "data": {
             "threat_metrix": {
-                "domain": payload_data,
+                "domain": sentence,
                 "class": 1 if prediction[0][0] > 0.9 else 0,
                 "score": accuracy,
             }
         },
         "event_info": event_info,
-        "request_created_at": payload.request_created_at,
+        "request_created_at": request_payload.request_created_at,
         "request_processed_at":  datetime.now(timezone.utc).strftime('%Y-%m-%dT%H:%M:%SZ')
     })
 
