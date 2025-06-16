@@ -16,6 +16,20 @@ class CustomFormatter(logging.Formatter):
         record.levelname = record.levelname.lower()
         return super().format(record)
     
+    def format(self, record):
+        log = {
+            'level': record.levelname.lower(),
+            'time': self.formatTime(record),
+        }
+
+        # Nếu message là dict thì merge vào log
+        if isinstance(record.msg, dict):
+            log.update(record.msg)
+        else:
+            log['message'] = record.getMessage()
+
+        return json.dumps(log, ensure_ascii=False)
+
     def formatTime(self, record, datefmt=None):
         dt = datetime.fromtimestamp(record.created, tz=timezone.utc)
         return dt.strftime('%Y-%m-%dT%H:%M:%SZ')
