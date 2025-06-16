@@ -113,27 +113,36 @@ async def process_loggcollection(request_payload: RequestPayload, eventInfo: str
     info = extract_eventInfo(request_payload.event_info)
     # Construct log entry
     logEntry = {
-        "name": "ws-dga-detection",
-        "agent_id": request_payload.payload.data.agent_id,
-        "agent_name": request_payload.payload.data.agent_name,
+        "service": "ws-dga-detection",
+        "agent": {
+            "id": request_payload.payload.data.agent_id,
+            "name": request_payload.payload.data.agent_name,
+        },
         "source": str(info["service_name"]).lower(),
         "destination": "ws-dga-detection",
-        "event_info": eventInfo,
+        "event": {
+            "id": info["event_id"],
+            "info": eventInfo,
+        },
         "level": "INFO",
-        "event_id": info["event_id"],
-        "type": "SERVICE_EVENT",
-        "action": "ANALYSIS_REQUEST",
-        "action_result": action_result,
-        "action_status": action_status,
+        "type": "SERVICE_TO_SERVICE_EVENT",
+        "action": {
+            "type": "ANALYSIS_REQUEST",
+            "result": action_result,
+            "status": action_status
+        },
+        "metrix": {
+            "prediction": score,
+        },
         "raw_request": str(request_payload),
-        "prediction": score,
         "message": message,
-        "request_created_at": to_unix_time(request_payload.request_created_at),
-        "request_processed_at": to_unix_time(datetime.now(timezone.utc).strftime('%Y-%m-%dT%H:%M:%SZ')),
-        "timestamp": datetime.now(timezone.utc).strftime('%Y-%m-%dT%H:%M:%SZ')
+        "timestamps": {
+            "request_created_at": to_unix_time(request_payload.request_created_at),
+            "request_processed_at": to_unix_time(datetime.now(timezone.utc).strftime('%Y-%m-%dT%H:%M:%SZ')),
+            "logged_at": datetime.now(timezone.utc).strftime('%Y-%m-%dT%H:%M:%SZ')
+        }
     }
-    logEntryJSON = json.dumps(logEntry, ensure_ascii=False).replace('"', '\\"')    
-    logger.info(logEntryJSON)
+    logger.info(logEntry)
 
 @app.get("/api/v1/ws/services/dga-detection/ping")
 def ping_info(authorization: str = Header(None)):
