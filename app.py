@@ -144,14 +144,9 @@ async def process_loggcollection(request_payload: RequestPayload, eventInfo: str
     }
     logger.info(logEntry)
 
-@app.get("/api/v1/ws/services/dga-detection/ping")
-def ping_info(authorization: str = Header(None)):
-    decoded_auth = get_decoded_auth(authorization)
-    apiKey = get_secret()
-    expectedAuthValue = f"ws:{apiKey}"
-    if decoded_auth != expectedAuthValue:
-        raise HTTPException(status_code=401, detail={"status": "Error", "message": "Unauthorized", "error_code": 401})
-    return {
+@app.get("/health")
+def health_check():
+    return JSONResponse(content={
         "model": "noobpk/dga-detection",
         "max_input_length": "unlimit",
         "vector_size": "45",
@@ -159,7 +154,7 @@ def ping_info(authorization: str = Header(None)):
         "model_build_at": "25-03-2025",
         "encoder": "pad_sequences",
         "author": "noobpk - lethanhphuc",
-    }
+    })
 
 @app.post("/api/v1/ws/services/dga-detection")
 async def detection(request_payload: RequestPayload, authorization: str = Header(None)):
