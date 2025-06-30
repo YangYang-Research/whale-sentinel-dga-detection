@@ -17,6 +17,20 @@ Key Functions:
 
 ✅ Seamless Integration with Security Frameworks – Works alongside other security modules to enhance network protection, DNS filtering, and automated threat mitigation.
 
-## Contributing
+---
 
-## License
+## 🤝 Contributing
+
+We welcome contributions and feedback. Please fork the repository and open a pull request with your suggested changes.
+
+---
+
+## 📄 License
+
+This project is licensed under the [MIT License](LICENSE).
+
+---
+
+## 🛡️ Security & Reporting
+
+If you discover a vulnerability, please report it responsibly via GitHub Issues or contact the maintainers privately.
